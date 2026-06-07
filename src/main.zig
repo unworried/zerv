@@ -34,15 +34,3 @@ pub fn main(init: std.process.Init) !void {
 
     try server.listen(init.io, LISTEN_ADDR, LISTEN_PORT);
 }
-
-fn watchSignals(server: *zerv.Server) void {
-    var mask = std.posix.empty_sigset;
-    _ = std.c.sigaddset(&mask, std.posix.SIG.INT);
-    _ = std.c.sigaddset(&mask, std.posix.SIG.TERM);
-
-    var sig: c_int = undefined;
-    _ = std.c.sigwait(&mask, &sig);
-
-    log.info("Received signal {d}, shutting down...", .{sig});
-    server.shutdown();
-}
