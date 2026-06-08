@@ -1,10 +1,10 @@
-comptime {
-    if (@import("builtin").os.tag != .linux) @compileError("Linux only");
-}
-
 const std = @import("std");
 const zerv = @import("zerv");
 const log = std.log.scoped(.basic);
+
+comptime {
+    if (@import("builtin").os.tag != .linux) @compileError("Linux only");
+}
 
 const LISTEN_ADDR = "127.0.0.1";
 const LISTEN_PORT = 8000;

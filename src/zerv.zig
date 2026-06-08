@@ -50,7 +50,7 @@ pub const Server = struct {
             grp.async(io, handleStream, .{ self, io, stream });
         }
 
-        log.info("Awaiting connections...", .{});
+        log.info("Awaiting conn shutdown...", .{});
         try grp.await(io);
     }
 
