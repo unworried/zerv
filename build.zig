@@ -10,20 +10,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const exe = b.addExecutable(.{
-        .name = "zerv",
+    const example = b.addExecutable(.{
+        .name = "basic",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
+            .root_source_file = b.path("examples/basic.zig"),
             .target = target,
             .optimize = optimize,
         }),
     });
 
-    exe.root_module.addImport("zerv", zerv);
+    example.root_module.addImport("zerv", zerv);
+    b.installArtifact(example);
 
-    b.installArtifact(exe);
-
-    const run_exe = b.addRunArtifact(exe);
+    const run_example = b.addRunArtifact(example);
     const run_step = b.step("run", "Run the application");
-    run_step.dependOn(&run_exe.step);
+    run_step.dependOn(&run_example.step);
 }

@@ -1,7 +1,8 @@
 const std = @import("std");
 const log = std.log.scoped(.zerv);
 
-pub const Handler = *const fn (*std.http.Server.Request) anyerror!void;
+pub const HandlerError = anyerror;
+pub const Handler = *const fn (*std.http.Server.Request) HandlerError!void;
 
 pub const Route = struct {
     method: std.http.Method,
@@ -20,8 +21,8 @@ pub const Server = struct {
     }
 
     pub fn shutdown(self: *Server) void {
-        self.shutting_down.store(true, .release);
-        const fd = self.listen_fd.load(.acquire);
+        self.shutting_down.store(true, .monotonic);
+        const fd = self.listen_fd.load(.monotonic);
         if (fd >= 0) {
             _ = std.posix.system.shutdown(fd, std.posix.SHUT.RDWR);
         }
@@ -35,8 +36,8 @@ pub const Server = struct {
 
         log.info("Listening on http://{s}:{d}", .{ addr, port });
 
-        self.listen_fd.store(serv.socket.handle, .release);
-        defer self.listen_fd.store(-1, .release);
+        self.listen_fd.store(serv.socket.handle, .monotonic);
+        defer self.listen_fd.store(-1, .monotonic);
 
         var grp: std.Io.Group = .init;
         defer grp.cancel(io);
