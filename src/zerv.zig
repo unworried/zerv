@@ -52,11 +52,9 @@ pub const Server = struct {
 
         log.info("Awaiting connections...", .{});
         try grp.await(io);
-
-        log.info("Stopping server", .{});
     }
 
-    fn handleStream(self: *Server, io: std.Io, stream: std.Io.net.Stream) !void {
+    fn handleStream(self: *Server, io: std.Io, stream: std.Io.net.Stream) void {
         defer stream.close(io);
 
         var read_buffer: [4096]u8 = undefined;
@@ -80,7 +78,8 @@ pub const Server = struct {
             };
 
             self.handleReq(&req) catch |err| {
-                log.err("failed to respond: {}", .{err});
+                log.err("req handler failed: {}", .{err});
+                req.respond("Internal Server Error", .{ .status = .internal_server_error }) catch {};
                 return;
             };
         }
@@ -88,7 +87,8 @@ pub const Server = struct {
 
     fn handleReq(self: *Server, req: *std.http.Server.Request) !void {
         for (self.routes) |route| {
-            if (route.method == req.head.method and std.mem.eql(u8, route.path, req.head.target)) {
+            const path = std.mem.sliceTo(req.head.target, '?');
+            if (route.method == req.head.method and std.mem.eql(u8, route.path, path)) {
                 return route.handler(req);
             }
         }
